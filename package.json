@@ -1,0 +1,32 @@
+{
+  "name": "PrayTimes",
+  "version": "0.0.3",
+  "description": "An Open-Source Library for Calculating Muslim Prayers Times",
+  "license": "GNU LGPL v3.0",
+  "homepage": "https://github.com/brothersincode/praytimes#readme",
+  "bugs": {
+    "url": "https://github.com/brothersincode/praytimes/issues",
+    "email": "praytimes@brothersincode.ir"
+  },
+  "keywords": [
+    "islamic",
+    "praytimes",
+    "prayer"
+  ],
+  "main": "src/praytimes.js",
+  "scripts": {},
+  "dependencies": {},
+  "devDependencies": {
+    "semistandard": "^13.0.1",
+    "stylelint": "^9.10.1"
+  },
+  "semistandard": {
+    "ignore": [
+      "/dist",
+      "*.min.js"
+    ],
+    "globals": [
+      "define"
+    ]
+  }
+}
