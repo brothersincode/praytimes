@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title> Daily Prayer Timetable </title>
+	<style>
+		body, td, th {font-family: verdana; font-size: 12px; color: #404040;}
+		#timetable {border-width: 1px; border-style: outset; border-collapse: collapse; border-color: gray; width: 9em;}
+		#timetable td, #timetable th {border-width: 1px; border-spacing: 1px; padding: 2px 4px; border-style: inset; border-color: #CCCCCC;}
+		#timetable th {color:black; text-align: center; font-weight: bold; background-color: #F8F7F4;}
+	</style>
+</head>
+
+<body>
+
+<script type="text/javascript" src="https://raw.githack.com/brothersincode/praytimes/master/src/praytimes.js"></script>
+
+<br>
+<p align="center">Qom, Qom Province, Iran<p>
+<div align="center" id="table"></div>
+
+<script type="text/javascript">
+
+	var prayTimes = new PrayTimes('Tehran');
+	var date = new Date(); // today
+
+	// prayTimes.tune({ fajr:'Fajr', sunrise:'Sunrise'});
+
+	var times = prayTimes.getTimes(date, [34.3824, 50.5235], 'auto');
+	var list = ['Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha', 'Midnight'];
+
+	var html = '<table id="timetable">';
+	html += '<tr><th colspan="2">'+ date.toLocaleDateString()+ '</th></tr>';
+	for(var i in list)	{
+		html += '<tr><td>'+ list[i]+ '</td>';
+		html += '<td>'+ times[list[i].toLowerCase()]+ '</td></tr>';
+	}
+	html += '</table>';
+	document.getElementById('table').innerHTML = html;
+
+	console.log(date.toLocaleDateString());
+	console.log(date.toDateString());
+	console.log(date.toGMTString());
+
+</script>
+</body>
+</html>

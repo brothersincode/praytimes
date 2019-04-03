@@ -1,0 +1,85 @@
+html,
+body,
+.container {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  /* direction: rtl; */
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+  /* font-family: Shabnam, sans-serif; */
+  color: #333;
+  background: #f7f7f7;
+  /* color: #043f48; */
+  /* background: #b0cad3; */
+  /* background: #dee9ec; */
+}
+
+.container {
+  text-align: center;
+
+  display: -webkit-flex;
+  display: flex;
+
+  -webkit-align-items: center;
+  align-items: center;
+
+  -webkit-justify-content: center;
+  justify-content: center;
+}
+
+.container img.-logo {
+  border-radius: 20px;
+}
+
+h2 {
+  margin-top: -.5rem;
+  font-size: 1rem;
+}
+
+ul.-links {
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 0.8rem;
+  padding: .75rem 1rem;
+  margin: 0 0 1rem;
+  list-style: none;
+  -webkit-justify-content: center;
+  -ms-flex-pack: center;
+  justify-content: center;
+}
+
+ul.-links + ul.-links {
+  margin-top: -1rem;
+  padding-top: .5rem;
+}
+
+ul.-links > li + li {
+  padding-left: .5rem;
+}
+
+ul.-links > li + li::before {
+  padding-right: .5rem;
+  color: #333;
+  content: "/";
+}
+
+a {
+  text-decoration: none;
+  color: #266877;
+}
+
+a:hover {
+  text-decoration: underline;
+  color: #266877;
+}
+
+.container p {
+  text-align: justify;
+  margin: 2rem auto 1rem;
+  max-width: 24rem;
+  padding: 0 1rem;
+  line-height: 1.4;
+  font-size: .82rem;
+}
