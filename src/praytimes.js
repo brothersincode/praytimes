@@ -1,5 +1,5 @@
 /*!
-* PrayTimes - v0.0.3 - 2019-04-04
+* PrayTimes - v0.0.4 - 2019-04-04
 * https://github.com/brothersincode/praytimes/
 */
 
