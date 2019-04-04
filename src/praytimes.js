@@ -4,8 +4,8 @@
 */
 
 /**
-  PrayTimes.js: Prayer Times Calculator (ver 2.3)
-  Copyright (C) 2007-2011 PrayTimes.org
+  PrayTimes.js: Prayer Times Calculator (ver 2.5)
+  Copyright (C) 2007-2017 PrayTimes.org
 
   Developer: Hamid Zarrabi-Zadeh
   License: GNU LGPL v3.0
@@ -150,6 +150,7 @@
 
     // time variables
     timeZone: undefined,
+    timestamp: undefined,
     jDate: undefined,
 
     /// Public Functions -------------------------------------------------------
@@ -177,9 +178,9 @@
 
     // return prayer times for a given date
     getTimes: function (date, coords, timezone, dst, format) {
-      this.lat = 1 * coords[0];
-      this.lng = 1 * coords[1];
-      this.elv = coords[2] ? 1 * coords[2] : 0;
+      this.lat = +coords[0];
+      this.lng = +coords[1];
+      this.elv = coords[2] ? +coords[2] : 0;
       this.timeFormat = format || this.timeFormat;
 
       if (date.constructor === Date) {
@@ -194,8 +195,9 @@
         dst = this.getDst(date);
       }
 
-      this.timeZone = 1 * timezone + (1 * dst ? 1 : 0);
-      this.jDate = this.julian(date[0], date[1], date[2]) - this.lng / (15 * 24);
+      this.timeZone = +timezone + (+dst ? 1 : 0);
+      this.timestamp = (new Date(Date.UTC(date[0], date[1] - 1, date[2]))).getTime();
+      this.jDate = this.julian(date[0], date[1], date[2]) - this.lng / 360;
 
       return this.computeTimes();
     },
@@ -208,6 +210,10 @@
 
       if (format === 'Float') {
         return time;
+      }
+
+      if (format === 'Timestamp') {
+        return this.timestamp + Math.floor((time - this.timeZone) * 60 * 60 * 1000);
       }
 
       suffixes = suffixes || this.timeSuffixes;
@@ -282,14 +288,14 @@
       var times = this.dayPortions(hours);
 
       return {
-        imsak: this.sunAngleTime(this.eval(this.setting.imsak), times.imsak, 'ccw'),
-        fajr: this.sunAngleTime(this.eval(this.setting.fajr), times.fajr, 'ccw'),
+        imsak: this.sunAngleTime(this.value(this.setting.imsak), times.imsak, 'ccw'),
+        fajr: this.sunAngleTime(this.value(this.setting.fajr), times.fajr, 'ccw'),
         sunrise: this.sunAngleTime(this.riseSetAngle(), times.sunrise, 'ccw'),
         dhuhr: this.midDay(times.dhuhr),
         asr: this.asrTime(this.asrFactor(this.setting.asr), times.asr),
         sunset: this.sunAngleTime(this.riseSetAngle(), times.sunset),
-        maghrib: this.sunAngleTime(this.eval(this.setting.maghrib), times.maghrib),
-        isha: this.sunAngleTime(this.eval(this.setting.isha), times.isha)
+        maghrib: this.sunAngleTime(this.value(this.setting.maghrib), times.maghrib),
+        isha: this.sunAngleTime(this.value(this.setting.isha), times.isha)
       };
     },
 
@@ -316,10 +322,11 @@
 
       // add midnight time
       times.midnight = (this.setting.midnight === 'Jafari')
-        ? times.sunset + this.timeDiff(times.sunset, times.fajr) / 2
-        : times.sunset + this.timeDiff(times.sunset, times.sunrise) / 2;
+        ? times.sunset + this.timeDiff(times.sunset, times.fajr + 24) / 2
+        : times.sunset + this.timeDiff(times.sunset, times.sunrise + 24) / 2;
 
       times = this.tuneTimes(times);
+
       return this.modifyFormats(times);
     },
 
@@ -336,18 +343,18 @@
       }
 
       if (this.isMin(params.imsak)) {
-        times.imsak = times.fajr - this.eval(params.imsak) / 60;
+        times.imsak = times.fajr - this.value(params.imsak) / 60;
       }
 
       if (this.isMin(params.maghrib)) {
-        times.maghrib = times.sunset + this.eval(params.maghrib) / 60;
+        times.maghrib = times.sunset + this.value(params.maghrib) / 60;
       }
 
       if (this.isMin(params.isha)) {
-        times.isha = times.maghrib + this.eval(params.isha) / 60;
+        times.isha = times.maghrib + this.value(params.isha) / 60;
       }
 
-      times.dhuhr += this.eval(params.dhuhr) / 60;
+      times.dhuhr += this.value(params.dhuhr) / 60;
 
       return times;
     },
@@ -355,7 +362,7 @@
     // get asr shadow factor
     asrFactor: function (asrParam) {
       var factor = { Standard: 1, Hanafi: 2 }[asrParam];
-      return factor || this.eval(asrParam);
+      return factor || this.value(asrParam);
     },
 
     // return sun angle for sunset/sunrise
@@ -389,10 +396,10 @@
       var params = this.setting;
       var nightTime = this.timeDiff(times.sunset, times.sunrise);
 
-      times.imsak = this.adjustHLTime(times.imsak, times.sunrise, this.eval(params.imsak), nightTime, 'ccw');
-      times.fajr = this.adjustHLTime(times.fajr, times.sunrise, this.eval(params.fajr), nightTime, 'ccw');
-      times.isha = this.adjustHLTime(times.isha, times.sunset, this.eval(params.isha), nightTime);
-      times.maghrib = this.adjustHLTime(times.maghrib, times.sunset, this.eval(params.maghrib), nightTime);
+      times.imsak = this.adjustHLTime(times.imsak, times.sunrise, this.value(params.imsak), nightTime, 'ccw');
+      times.fajr = this.adjustHLTime(times.fajr, times.sunrise, this.value(params.fajr), nightTime, 'ccw');
+      times.isha = this.adjustHLTime(times.isha, times.sunset, this.value(params.isha), nightTime);
+      times.maghrib = this.adjustHLTime(times.maghrib, times.sunset, this.value(params.maghrib), nightTime);
 
       return times;
     },
@@ -463,7 +470,7 @@
     /// Misc Functions ---------------------------------------------------------
 
     // convert given string into a number
-    eval: function (str) {
+    value: function (str) {
       return 1 * (str + '').split(/[^0-9.+-]/)[0];
     },
 
