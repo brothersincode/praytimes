@@ -373,7 +373,9 @@
     riseSetAngle: function () {
       // var earthRad = 6371009; // in meters
       // var angle = this.dMathArcCos(earthRad/(earthRad + this.elv));
+
       var angle = 0.0347 * Math.sqrt(this.elv); // an approximation
+
       return 0.833 + angle;
     },
 
@@ -451,10 +453,7 @@
 
     // get local time zone
     getTimeZone: function (date) {
-      var year = date[0];
-      var t1 = this.gmtOffset([year, 0, 1]);
-      var t2 = this.gmtOffset([year, 6, 1]);
-      return Math.min(t1, t2);
+      return Math.min(this.gmtOffset([date[0], 0, 1]), this.gmtOffset([date[0], 6, 1]));
     },
 
     // get daylight saving for a given date
@@ -467,8 +466,7 @@
       var localDate = new Date(date[0], date[1] - 1, date[2], 12, 0, 0, 0);
       var GMTString = localDate.toGMTString();
       var GMTDate = new Date(GMTString.substring(0, GMTString.lastIndexOf(' ') - 1));
-      var hoursDiff = (localDate - GMTDate) / (1000 * 60 * 60);
-      return hoursDiff;
+      return (localDate - GMTDate) / (1000 * 60 * 60);
     },
 
     /// Misc Functions ---------------------------------------------------------
