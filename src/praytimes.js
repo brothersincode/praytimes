@@ -536,13 +536,12 @@
 
     // adjust times for locations in higher latitudes
     adjustHighLats: function (times) {
-      var params = this.setting;
       var nightTime = this.timeDiff(times.sunset, times.sunrise);
 
-      times.imsak = this.adjustHLTime(times.imsak, times.sunrise, this.value(params.imsak), nightTime, 'ccw');
-      times.fajr = this.adjustHLTime(times.fajr, times.sunrise, this.value(params.fajr), nightTime, 'ccw');
-      times.isha = this.adjustHLTime(times.isha, times.sunset, this.value(params.isha), nightTime);
-      times.maghrib = this.adjustHLTime(times.maghrib, times.sunset, this.value(params.maghrib), nightTime);
+      times.imsak = this.adjustHLTime(times.imsak, times.sunrise, this.value(this.setting.imsak), nightTime, 'ccw');
+      times.fajr = this.adjustHLTime(times.fajr, times.sunrise, this.value(this.setting.fajr), nightTime, 'ccw');
+      times.isha = this.adjustHLTime(times.isha, times.sunset, this.value(this.setting.isha), nightTime);
+      times.maghrib = this.adjustHLTime(times.maghrib, times.sunset, this.value(this.setting.maghrib), nightTime);
 
       return times;
     },
@@ -564,14 +563,11 @@
 
     // the night portion used for adjusting times in higher latitudes
     nightPortion: function (angle, night) {
-      var method = this.setting.highLats;
       var portion = 1 / 2; // MidNight
 
-      if (method === 'AngleBased') {
+      if (this.setting.highLats === 'AngleBased') {
         portion = 1 / 60 * angle;
-      }
-
-      if (method === 'OneSeventh') {
+      } else if (this.setting.highLats === 'OneSeventh') {
         portion = 1 / 7;
       }
 
