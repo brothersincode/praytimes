@@ -33,14 +33,7 @@
       return new PrayTimes(method, options);
     }
 
-    this.setMethod(method);
-
-    // init time offsets
-    for (var o in this.timeNames) {
-      this.offset[o] = 0;
-    }
-
-    return this;
+    return this.init(method);
   }
 
   PrayTimes.prototype = {
@@ -152,6 +145,17 @@
     timeZone: undefined,
     timestamp: undefined,
     jDate: undefined,
+
+    init: function init (method) {
+      this.setMethod(method);
+
+      // init time offsets
+      for (var o in this.timeNames) {
+        this.offset[o] = 0;
+      }
+
+      return this;
+    },
 
     /// Public Functions -------------------------------------------------------
 
