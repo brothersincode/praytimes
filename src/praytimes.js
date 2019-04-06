@@ -119,7 +119,7 @@
     },
 
     /// Default Settings -------------------------------------------------------
-    calcMethod: 'Makkah',
+    calcMethod: 'MWL',
 
     // do not change anything here; use adjust method instead
     setting: {
