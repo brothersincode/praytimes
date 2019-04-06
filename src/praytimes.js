@@ -1,6 +1,7 @@
 /*!
 * PrayTimes - v0.0.4 - 2019-04-04
 * https://github.com/brothersincode/praytimes/
+* http://praytimes.org/wiki/Code_Manual
 */
 
 /**
@@ -159,28 +160,164 @@
 
     /// Public Functions -------------------------------------------------------
 
-    // set calculation method
+    /**
+     * Set Calculation Method
+     *
+     * There are several conventions for calculating prayer times.
+     * The default convention used in PrayTimes is Muslim World League.
+     *
+     * More information on the above calculation methods is provided
+     * [here](http://praytimes.org/wiki/Calculation_Methods).
+     *
+     * Example: prayTimes.setMethod('Makkah');
+     *
+     * @param  {string} method can be any of the followings:
+     *
+     * | Method  | Description                                    |
+     * | ------- | ---------------------------------------------- |
+     * | MWL     |  Muslim World League                           |
+     * | ISNA    |  Islamic Society of North America              |
+     * | Egypt   |  Egyptian General Authority of Survey          |
+     * | Makkah  |  Umm al-Qura University, Makkah                |
+     * | Karachi |  University of Islamic Sciences, Karachi       |
+     * | Tehran  |  Institute of Geophysics, University of Tehran |
+     * | Jafari  |  Shia Ithna Ashari (Ja`fari)                   |
+     *
+     * @return {null}
+     */
     setMethod: function (method) {
       if (this.methods[method]) {
-        var params = this.methods[method].params;
-
-        // set calculating parameters
-        for (var id in params) {
-          this.setting[id] = params[id];
-        }
-
+        this.adjust(this.methods[method].params);
         this.calcMethod = method;
       }
     },
 
-    // set time offsets
-    // tune: function (timeOffsets) {
-    //   for (var i in timeOffsets) {
-    //     this.offset[i] = timeOffsets[i];
-    //   }
-    // },
+    /**
+     * Adjusting Parameters
+     *
+     * The calculating parameters can be adjusted using this function.
+     *
+     * | Parameter | Values  | Description                              | Sample Value |
+     * | --------- | ------- | ---------------------------------------- | ------------ |
+     * | imsak     | degrees | twilight angle                           | 18           |
+     * |           | minutes | minutes before fajr                      | 10 min       |
+     * | fajr      | degrees | twilight angle                           | 15           |
+     * | dhuhr     | minutes | minutes after mid-day                    | 1 min        |
+     * | asr       | method  | asr juristic method; see the table above | Standard     |
+     * |           | factor  | shadow length factor for realizing asr   | 1.7          |
+     * | maghrib   | degrees | twilight angle                           | 4            |
+     * |           | minutes | minutes after sunset                     | 15 min       |
+     * | isha      | degrees | twilight angle                           | 18           |
+     * |           | minutes | minutes after maghrib                    | 90 min       |
+     * | midnight  | method  | midnight method; see the table above     | Standard     |
+     * | highLats  | method  | higher latitudes adjustment; see above   | None         |
+     *
+     * asr methods, [more info](http://praytimes.org/wiki/Calculation#Asr):
+     * | Method   | Description                                            |
+     * | -------- | ------------------------------------------------------ |
+     * | Standard | Shafii, Maliki, Jafari and Hanbali (shadow factor = 1) |
+     * | Hanafi   | Hanafi school of tought (shadow factor = 2)            |
+     *
+     * midnight methods:
+     * | Method   | Description                          |
+     * | -------- | ------------------------------------ |
+     * | Standard | The mean time from Sunset to Sunrise |
+     * | Jafari   | The mean time from Maghrib to Fajr   |
+     *
+     * higher latitudes methods,
+     * [more info](http://praytimes.org/wiki/Calculation#Higher_Latitudes):
+     * | Method      | Description                          |
+     * | ----------- | ------------------------------------ |
+     * | None        | No adjustments                       |
+     * | NightMiddle | The middle of the night method       |
+     * | OneSeventh  | The 1/7th of the night method        |
+     * | AngleBased  | The angle-based method (recommended) |
+     *
+     * @param  {array} params is an associative array composed of any number
+     *                         of the above parameters.
+     *
+     * @return {null}
+     */
+    adjust: function adjust (params) {
+      for (var id in params) {
+        this.setting[id] = params[id];
+      }
+    },
 
-    // return prayer times for a given date
+    /**
+     * Tuning Times
+     *
+     * You can further tune calculated prayer times (for precaution).
+     *
+     * By default, PrayTimes rounds minutes to the nearest values. To round
+     * a specific time up, you can tune it by +0.5 minutes, and to
+     * round it down, you can tune it by -0.5 minutes.
+     *
+     * Tuning is the last step after calculating step, and thus, it has
+     * no effect on the calculation parameters. For example, if Isha is
+     * set to be 90 minutes after sunset, tuning sunset by 5 minutes
+     * will not push Isha forward.
+     *
+     * Example: prayTimes.tune( {sunrise: -1, sunset: 3.5} );
+     *
+     * @param  {array} timeOffsets is an associative array containing time
+     *                              offsets in minutes for each prayer time.
+     *
+     * @return {null}
+     */
+    tune: function tune (timeOffsets) {
+      for (var i in timeOffsets) {
+        this.offset[i] = timeOffsets[i];
+      }
+    },
+
+    /**
+     * Get Prayer Times
+     *
+     * The following function is used to retrieve prayer times for a given date
+     * and location.
+     *
+     * Example: prayTimes.getTimes(new Date(), [43, -80], -5);
+     *
+     * @param  {mixed} date     The date for which prayer times are calculated.
+     *                          You can use `new Date()` to specify today. Date
+     *                          can be also entered as a triple
+     *                          `[year, month, day]`. For example,
+     *                          `[2009, 2, 26]` specifies February 26, 2009.
+     *
+     * @param  {array} coords   Specifies the coordinates of the input location
+     *                          as a triple `[latitude, longitude, elevation]`.
+     *                          Latitude is a real number between -90 and 90,
+     *                          longitude is between -180 and 180, and elevation
+     *                          is a positive number, specifying the height in
+     *                          meters with respect to the surrounding terrain.
+     *                          The elevation parameter is optional.
+     *                          Examples of valid coordinates are
+     *                          `[-43.2, 80.6]` and `[12.5, -25.8, 300]`.
+     *
+     * @param  {int} timezone   The difference to Greenwich time (GMT) in hours.
+     *                          If omitted or set to 'auto', timezone is
+     *                          extracted from the system.
+     *
+     * @param  {int} dst        Daylight Saving Time: 1 if date is in daylight
+     *                          saving time, 0 otherwise. If omitted or set to
+     *                          'auto', dst is extracted from the system.
+     *
+     * @param  {string} format  Output time format, according to the following:
+     *                          | Format | Description                   | Example |
+     *                          | ------ | ----------------------------- | ------- |
+     *                          | 24h    | 24-hour time format           | 16:45   |
+     *                          | 12h    | 12-hour time format           | 4:45 pm |
+     *                          | 12hNS  | 12-hour format with no suffix | 4:45    |
+     *                          | Float  | Floating point number         | 16.75   |
+     *
+     * @return {array}          an associative array containing 9 prayer times
+     *                          (see here for the list of times and their definition).
+     *                          Each time can be accessed thorough its name.
+     *                          For example, if the output of getTimes function
+     *                          is stored in an object times, the time for
+     *                          sunrise can be accessed through times.sunrise.
+     */
     getTimes: function (date, coords, timezone, dst, format) {
       this.lat = +coords[0];
       this.lng = +coords[1];
