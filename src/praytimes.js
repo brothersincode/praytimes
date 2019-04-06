@@ -123,7 +123,7 @@
     calcMethod: 'MWL',
 
     // do not change anything here; use adjust method instead
-    setting: {
+    settings: {
       imsak: '10 min',
       dhuhr: '0 min',
       asr: 'Standard',
@@ -185,7 +185,7 @@
      *
      * @return {null}
      */
-    setMethod: function (method) {
+    setMethod: function setMethod (method) {
       if (this.methods[method]) {
         this.adjust(this.methods[method].params);
         this.calcMethod = method;
@@ -240,7 +240,7 @@
      */
     adjust: function adjust (params) {
       for (var id in params) {
-        this.setting[id] = params[id];
+        this.settings[id] = params[id];
       }
     },
 
@@ -318,14 +318,18 @@
      *                          is stored in an object times, the time for
      *                          sunrise can be accessed through times.sunrise.
      */
-    getTimes: function (date, coords, timezone, dst, format) {
+    getTimes: function getTimes (date, coords, timezone, dst, format) {
       this.lat = +coords[0];
       this.lng = +coords[1];
       this.elv = coords[2] ? +coords[2] : 0;
       this.timeFormat = format || this.timeFormat;
 
-      if (date.constructor === Date) {
-        date = [date.getFullYear(), date.getMonth() + 1, date.getDate()];
+      if (date instanceof Date) {
+        date = [
+          date.getFullYear(),
+          date.getMonth() + 1,
+          date.getDate()
+        ];
       }
 
       if (typeof (timezone) === 'undefined' || timezone === 'auto') {
@@ -344,7 +348,7 @@
     },
 
     // convert float time to the given format (see timeFormats)
-    getFormattedTime: function (time, format, suffixes) {
+    getFormattedTime: function getFormattedTime (time, format, suffixes) {
       if (isNaN(time)) {
         return this.invalidTime;
       }
@@ -371,12 +375,12 @@
     /// Calculation Functions --------------------------------------------------
 
     // compute mid-day time
-    midDay: function (time) {
+    midDay: function midDay (time) {
       return this.dMathfixHour(12 - this.sunPosition(this.jDate + time).equation);
     },
 
     // compute the time at which sun reaches a specific angle below horizon
-    sunAngleTime: function (angle, time, direction) {
+    sunAngleTime: function sunAngleTime (angle, time, direction) {
       var decl = this.sunPosition(this.jDate + time).declination;
       var noon = this.midDay(time);
       var t = 1 / 15 * this.dMathArcCos((-this.dMathSin(angle) - this.dMathSin(decl) * this.dMathSin(this.lat)) / (this.dMathCos(decl) * this.dMathCos(this.lat)));
@@ -385,7 +389,7 @@
     },
 
     // compute asr time
-    asrTime: function (factor, time) {
+    asrTime: function asrTime (factor, time) {
       var decl = this.sunPosition(this.jDate + time).declination;
       var angle = -(this.dMathArcCot(factor + this.dMathTan(Math.abs(this.lat - decl))));
       return this.sunAngleTime(angle, time);
@@ -393,7 +397,7 @@
 
     // compute declination angle of sun and equation of time
     // @REF: https://aa.usno.navy.mil/faq/docs/SunApprox.php
-    sunPosition: function (jd) {
+    sunPosition: function sunPosition (jd) {
       var D = jd - 2451545.0;
       var g = this.dMathfixAngle(357.529 + 0.98560028 * D);
       var q = this.dMathfixAngle(280.459 + 0.98564736 * D);
@@ -410,7 +414,7 @@
 
     // convert Gregorian date to Julian day
     // @REF: Astronomical Algorithms by Jean Meeus
-    julian: function (year, month, day) {
+    julian: function julian (year, month, day) {
       if (month <= 2) {
         year -= 1;
         month += 12;
@@ -425,23 +429,23 @@
     /// Compute Prayer Times ---------------------------------------------------
 
     // compute prayer times at given julian date
-    computePrayerTimes: function (hours) {
+    computePrayerTimes: function computePrayerTimes (hours) {
       var times = this.dayPortions(hours);
 
       return {
-        imsak: this.sunAngleTime(this.value(this.setting.imsak), times.imsak, 'ccw'),
-        fajr: this.sunAngleTime(this.value(this.setting.fajr), times.fajr, 'ccw'),
+        imsak: this.sunAngleTime(this.value(this.settings.imsak), times.imsak, 'ccw'),
+        fajr: this.sunAngleTime(this.value(this.settings.fajr), times.fajr, 'ccw'),
         sunrise: this.sunAngleTime(this.riseSetAngle(), times.sunrise, 'ccw'),
         dhuhr: this.midDay(times.dhuhr),
-        asr: this.asrTime(this.asrFactor(this.setting.asr), times.asr),
+        asr: this.asrTime(this.asrFactor(this.settings.asr), times.asr),
         sunset: this.sunAngleTime(this.riseSetAngle(), times.sunset),
-        maghrib: this.sunAngleTime(this.value(this.setting.maghrib), times.maghrib),
-        isha: this.sunAngleTime(this.value(this.setting.isha), times.isha)
+        maghrib: this.sunAngleTime(this.value(this.settings.maghrib), times.maghrib),
+        isha: this.sunAngleTime(this.value(this.settings.isha), times.isha)
       };
     },
 
     // compute prayer times
-    computeTimes: function () {
+    computeTimes: function computeTimes () {
       // default times
       var times = {
         imsak: 5,
@@ -462,7 +466,7 @@
       times = this.adjustTimes(times);
 
       // add midnight time
-      times.midnight = (this.setting.midnight === 'Jafari')
+      times.midnight = (this.settings.midnight === 'Jafari')
         ? times.sunset + this.timeDiff(times.sunset, times.fajr + 24) / 2
         : times.sunset + this.timeDiff(times.sunset, times.sunrise + 24) / 2;
 
@@ -471,9 +475,8 @@
       return this.modifyFormats(times);
     },
 
-    // adjust times
-    adjustTimes: function (times) {
-      var params = this.setting;
+    adjustTimes: function adjustTimes (times) {
+      var params = this.settings;
 
       for (var i in times) {
         times[i] += this.timeZone - this.lng / 15;
@@ -501,13 +504,13 @@
     },
 
     // get asr shadow factor
-    asrFactor: function (asrParam) {
+    asrFactor: function asrFactor (asrParam) {
       var factor = { Standard: 1, Hanafi: 2 }[asrParam];
       return factor || this.value(asrParam);
     },
 
     // return sun angle for sunset/sunrise
-    riseSetAngle: function () {
+    riseSetAngle: function riseSetAngle () {
       // var earthRad = 6371009; // in meters
       // var angle = this.dMathArcCos(earthRad/(earthRad + this.elv));
 
@@ -517,7 +520,7 @@
     },
 
     // apply offsets to the times
-    tuneTimes: function (times) {
+    tuneTimes: function tuneTimes (times) {
       for (var i in times) {
         times[i] += this.offset[i] / 60;
       }
@@ -526,7 +529,7 @@
     },
 
     // convert times to given time format
-    modifyFormats: function (times) {
+    modifyFormats: function modifyFormats (times) {
       for (var i in times) {
         times[i] = this.getFormattedTime(times[i], this.timeFormat);
       }
@@ -535,19 +538,19 @@
     },
 
     // adjust times for locations in higher latitudes
-    adjustHighLats: function (times) {
+    adjustHighLats: function adjustHighLats (times) {
       var nightTime = this.timeDiff(times.sunset, times.sunrise);
 
-      times.imsak = this.adjustHLTime(times.imsak, times.sunrise, this.value(this.setting.imsak), nightTime, 'ccw');
-      times.fajr = this.adjustHLTime(times.fajr, times.sunrise, this.value(this.setting.fajr), nightTime, 'ccw');
-      times.isha = this.adjustHLTime(times.isha, times.sunset, this.value(this.setting.isha), nightTime);
-      times.maghrib = this.adjustHLTime(times.maghrib, times.sunset, this.value(this.setting.maghrib), nightTime);
+      times.imsak = this.adjustHLTime(times.imsak, times.sunrise, this.value(this.settings.imsak), nightTime, 'ccw');
+      times.fajr = this.adjustHLTime(times.fajr, times.sunrise, this.value(this.settings.fajr), nightTime, 'ccw');
+      times.isha = this.adjustHLTime(times.isha, times.sunset, this.value(this.settings.isha), nightTime);
+      times.maghrib = this.adjustHLTime(times.maghrib, times.sunset, this.value(this.settings.maghrib), nightTime);
 
       return times;
     },
 
     // adjust a time for higher latitudes
-    adjustHLTime: function (time, base, angle, night, direction) {
+    adjustHLTime: function adjustHLTime (time, base, angle, night, direction) {
       var portion = this.nightPortion(angle, night);
 
       var timeDiff = (direction === 'ccw')
@@ -562,12 +565,12 @@
     },
 
     // the night portion used for adjusting times in higher latitudes
-    nightPortion: function (angle, night) {
+    nightPortion: function nightPortion (angle, night) {
       var portion = 1 / 2; // MidNight
 
-      if (this.setting.highLats === 'AngleBased') {
+      if (this.settings.highLats === 'AngleBased') {
         portion = 1 / 60 * angle;
-      } else if (this.setting.highLats === 'OneSeventh') {
+      } else if (this.settings.highLats === 'OneSeventh') {
         portion = 1 / 7;
       }
 
@@ -575,7 +578,7 @@
     },
 
     // convert hours to day portions
-    dayPortions: function (hours) {
+    dayPortions: function dayPortions (hours) {
       for (var i in hours) {
         hours[i] /= 24;
       }
@@ -585,17 +588,17 @@
     // Time Zone Functions -----------------------------------------------------
 
     // get local time zone
-    getTimeZone: function (date) {
+    getTimeZone: function getTimeZone (date) {
       return Math.min(this.gmtOffset([date[0], 0, 1]), this.gmtOffset([date[0], 6, 1]));
     },
 
     // get daylight saving for a given date
-    getDst: function (date) {
+    getDst: function getDst (date) {
       return 1 * (this.gmtOffset(date) !== this.getTimeZone(date));
     },
 
     // GMT offset for a given date
-    gmtOffset: function (date) {
+    gmtOffset: function gmtOffset (date) {
       var localDate = new Date(date[0], date[1] - 1, date[2], 12, 0, 0, 0);
       var GMTString = localDate.toGMTString();
       var GMTDate = new Date(GMTString.substring(0, GMTString.lastIndexOf(' ') - 1));
@@ -605,89 +608,89 @@
     /// Misc Functions ---------------------------------------------------------
 
     // convert given string into a number
-    value: function (str) {
+    value: function value (str) {
       return 1 * (str + '').split(/[^0-9.+-]/)[0];
     },
 
     // detect if input contains 'min'
-    isMin: function (arg) {
+    isMin: function isMin (arg) {
       return (arg + '').indexOf('min') !== -1;
     },
 
     // compute the difference between two times
-    timeDiff: function (time1, time2) {
+    timeDiff: function timeDiff (time1, time2) {
       return this.dMathfixHour(time2 - time1);
     },
 
     // add a leading 0 if necessary
-    twoDigitsFormat: function (num) {
+    twoDigitsFormat: function twoDigitsFormat (num) {
       return num < 10 ? '0' + num : num;
     },
 
     // Degree-Based Math -------------------------------------------------------
 
     // dtr
-    dMathDTR: function (d) {
+    dMathDTR: function dMathDTR (d) {
       return (d * Math.PI) / 180.0;
     },
 
     // rtd
-    dMathRTD: function (r) {
+    dMathRTD: function dMathRTD (r) {
       return (r * 180.0) / Math.PI;
     },
 
     // sin
-    dMathSin: function (d) {
+    dMathSin: function dMathSin (d) {
       return Math.sin(this.dMathDTR(d));
     },
 
     // cos
-    dMathCos: function (d) {
+    dMathCos: function dMathCos (d) {
       return Math.cos(this.dMathDTR(d));
     },
 
     // tan
-    dMathTan: function (d) {
+    dMathTan: function dMathTan (d) {
       return Math.tan(this.dMathDTR(d));
     },
 
     // arcsin
-    dMathArcSin: function (d) {
+    dMathArcSin: function dMathArcSin (d) {
       return this.dMathRTD(Math.asin(d));
     },
 
     // arccos
-    dMathArcCos: function (d) {
+    dMathArcCos: function dMathArcCos (d) {
       return this.dMathRTD(Math.acos(d));
     },
 
     // arctan
-    dMathArcTan: function (d) {
+    dMathArcTan: function dMathArcTan (d) {
       return this.dMathRTD(Math.atan(d));
     },
 
     // arccot
-    dMathArcCot: function (x) {
+    dMathArcCot: function dMathArcCot (x) {
       return this.dMathRTD(Math.atan(1 / x));
     },
 
     // arctan2
-    dMathArcTan2: function (y, x) {
+    dMathArcTan2: function dMathArcTan2 (y, x) {
       return this.dMathRTD(Math.atan2(y, x));
     },
 
     // fixAngle
-    dMathfixAngle: function (a) {
+    dMathfixAngle: function dMathfixAngle (a) {
       return this.dMathFix(a, 360);
     },
 
     // fixHour
-    dMathfixHour: function (a) {
+    dMathfixHour: function dMathfixHour (a) {
       return this.dMathFix(a, 24);
     },
 
     // fix
-    dMathFix: function (a, b) {
+    dMathFix: function dMathFix (a, b) {
       a = a - b * (Math.floor(a / b));
       return (a < 0) ? a + b : a;
     }
